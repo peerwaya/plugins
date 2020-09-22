@@ -24,6 +24,7 @@ class CreateMessage {
   String uri;
   String packageName;
   String formatHint;
+  bool cachedEnabled;
 }
 
 class MixWithOthersMessage {

@@ -146,6 +146,7 @@ class DataSource {
     this.formatHint,
     this.asset,
     this.package,
+    this.cacheEnabled,
   });
 
   /// The way in which the video was originally loaded.
@@ -170,6 +171,11 @@ class DataSource {
   /// The package that the asset was loaded from. Only set for
   /// [DataSourceType.asset] videos.
   final String package;
+
+  /// This will enable this datasource to be cachec.
+  ///
+  ///  Only set for [DataSourceType.network] videos.
+  final bool cacheEnabled;
 }
 
 /// The way in which the video was originally loaded.
@@ -343,6 +349,15 @@ class VideoPlayerOptions {
   /// The default value is false
   final bool mixWithOthers;
 
+  /// Set this to true to let the video track the widget life cycle event and configure play or pause
+  final bool enableObserver;
+
+  /// Set this to true to enable caching the video asset, usually for network data sources
+  final bool cacheEnabled;
+
   /// set additional optional player settings
-  VideoPlayerOptions({this.mixWithOthers = false});
+  VideoPlayerOptions(
+      {this.mixWithOthers = false,
+      this.enableObserver = true,
+      this.cacheEnabled = false});
 }

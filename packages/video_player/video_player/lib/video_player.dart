@@ -239,8 +239,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
-    _lifeCycleObserver = _VideoAppLifeCycleObserver(this);
-    _lifeCycleObserver.initialize();
+    if (videoPlayerOptions?.enableObserver == null ||
+        videoPlayerOptions.enableObserver) {
+      _lifeCycleObserver = _VideoAppLifeCycleObserver(this);
+      _lifeCycleObserver.initialize();
+    }
     _creatingCompleter = Completer<void>();
 
     DataSource dataSourceDescription;
@@ -257,6 +260,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           sourceType: DataSourceType.network,
           uri: dataSource,
           formatHint: formatHint,
+          cacheEnabled: videoPlayerOptions?.cacheEnabled,
         );
         break;
       case DataSourceType.file:
@@ -267,10 +271,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         break;
     }
 
-    if (videoPlayerOptions?.mixWithOthers != null) {
-      await _videoPlayerPlatform
-          .setMixWithOthers(videoPlayerOptions.mixWithOthers);
-    }
+    // if (videoPlayerOptions?.mixWithOthers != null) {
+    //   await _videoPlayerPlatform
+    //       .setMixWithOthers(.mixWithOthers);
+    // }
 
     _textureId = await _videoPlayerPlatform.create(dataSourceDescription);
     _creatingCompleter.complete(null);
@@ -342,7 +346,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         await _eventSubscription?.cancel();
         await _videoPlayerPlatform.dispose(_textureId);
       }
-      _lifeCycleObserver.dispose();
+      _lifeCycleObserver?.dispose();
     }
     _isDisposed = true;
     super.dispose();

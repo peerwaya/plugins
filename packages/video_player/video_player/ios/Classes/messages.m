@@ -80,6 +80,10 @@ static NSDictionary *wrapResult(NSDictionary *result, FlutterError *error) {
   if ((NSNull *)result.formatHint == [NSNull null]) {
     result.formatHint = nil;
   }
+  NSNumber* cacheEnabled = dict[@"cacheEnabled"];
+  if ((NSNull *)cacheEnabled != [NSNull null]) {
+      result.cacheEnabled = [cacheEnabled boolValue];
+  }
   return result;
 }
 - (NSDictionary *)toMap {
@@ -89,7 +93,9 @@ static NSDictionary *wrapResult(NSDictionary *result, FlutterError *error) {
                                    (self.packageName != nil ? self.packageName : [NSNull null]),
                                    @"packageName",
                                    (self.formatHint != nil ? self.formatHint : [NSNull null]),
-                                   @"formatHint", nil];
+                                   @"formatHint",
+                                   [NSNumber numberWithBool:self.cacheEnabled], @"cacheEnabled",
+                                    nil];
 }
 @end
 
