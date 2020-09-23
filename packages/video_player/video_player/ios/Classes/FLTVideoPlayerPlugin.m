@@ -281,59 +281,11 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
   _displayLink.paused = YES;
 }
 
-- (instancetype)initWithURL:(NSURL*)url frameUpdater:(FLTFrameUpdater*)frameUpdater {
-  return [self initWithURL:url frameUpdater:frameUpdater cacheEnabled:YES];
-}
-
-- (CGAffineTransform)fixTransform:(AVAssetTrack*)videoTrack {
-  CGAffineTransform transform = videoTrack.preferredTransform;
-  // TODO(@recastrodiaz): why do we need to do this? Why is the preferredTransform incorrect?
-  // At least 2 user videos show a black screen when in portrait mode if we directly use the
-  // videoTrack.preferredTransform Setting tx to the height of the video instead of 0, properly
-  // displays the video https://github.com/flutter/flutter/issues/17606#issuecomment-413473181
-  if (transform.tx == 0 && transform.ty == 0) {
-    NSInteger rotationDegrees = (NSInteger)round(radiansToDegrees(atan2(transform.b, transform.a)));
-    NSLog(@"TX and TY are 0. Rotation: %ld. Natural width,height: %f, %f", (long)rotationDegrees,
-          videoTrack.naturalSize.width, videoTrack.naturalSize.height);
-    if (rotationDegrees == 90) {
-      NSLog(@"Setting transform tx");
-      transform.tx = videoTrack.naturalSize.height;
-      transform.ty = 0;
-    } else if (rotationDegrees == 270) {
-      NSLog(@"Setting transform ty");
-      transform.tx = 0;
-      transform.ty = videoTrack.naturalSize.width;
-    }
-  }
-  return transform;
-}
-
 - (NSInteger)rotationForTrack:(AVAssetTrack *)videoTrack
 {
     CGSize size = [videoTrack naturalSize];
     CGAffineTransform preferredTransform = [videoTrack preferredTransform];
     return RadiansToDegrees(atan2(preferredTransform.b, preferredTransform.a));
-    // Return interface orientation based on
-    // the preferred transform and size of the video.
-//    if (size.width == preferredTransform.tx &&
-//        size.height == preferredTransform.ty)
-//    {
-//        return 180;
-//    }
-//    else if (preferredTransform.tx == 0 &&
-//             preferredTransform.ty == 0)
-//    {
-//        return 0;
-//    }
-//    else if (preferredTransform.tx == 0 &&
-//             preferredTransform.ty == size.width)
-//    {
-//        return 270;
-//    }
-//    else
-//    {
-//        return 90;
-//    }
 }
 
 - (instancetype)initWithURL:(NSURL*)url frameUpdater:(FLTFrameUpdater*)frameUpdater cacheEnabled:(BOOL)useCache{
@@ -370,18 +322,16 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
                     if (self->_disposed) return;
                     if ([videoTrack statusOfValueForKey:@"preferredTransform"
                                                   error:nil] == AVKeyValueStatusLoaded) {
-                        // self->_preferredTransform = [self fixTransform:videoTrack];
-                        self.rotation = [self rotationForTrack:videoTrack];
-                        CGFloat width = videoTrack.naturalSize.width;
-                        CGFloat height = videoTrack.naturalSize.height;
+                       self.rotation = [self rotationForTrack:videoTrack];
+                       CGFloat width = videoTrack.naturalSize.width;
+                       CGFloat height = videoTrack.naturalSize.height;
                        if (self.rotation == 90 || self.rotation == 270) {
                           width = videoTrack.naturalSize.height;
                           height = videoTrack.naturalSize.width;
                         }
-//                        CGFloat width = videoTrack.naturalSize.width;
-//                        CGFloat height = videoTrack.naturalSize.height;
                         self.videoFrameSize = CGSizeMake(width, height);
                         [self createDataFBO];
+                        NSLog(@"player configured");
                     }
                 };
                 [videoTrack loadValuesAsynchronouslyForKeys:@[ @"preferredTransform" ]
@@ -399,13 +349,10 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
     [self addObservers:item];
     
     [asset loadValuesAsynchronouslyForKeys:@[ @"tracks" ] completionHandler:assetCompletionHandler];
-    
-    NSLog(@"player configured");
 }
 
 - (void)playerItemForSourceUsingCache:(NSURL *)url assetOptions:(NSDictionary *)options{
     NSString *uri = [url absoluteString];
-    NSLog(@"Got Playing back uri '%@'", uri);
     [_videoCache getItemForUri:uri withCallback:^(FlutterVideoCacheStatus videoCacheStatus, AVAsset * _Nullable cachedAsset) {
         switch (videoCacheStatus) {
             case FlutterVideoCacheStatusMissingFileExtension: {
@@ -433,15 +380,6 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
         
         DVURLAsset *asset = [[DVURLAsset alloc] initWithURL:url options:options networkTimeout:10000];
         asset.loaderDelegate = self;
-        
-        /* More granular code to have control over the DVURLAsset
-         DVAssetLoaderDelegate *resourceLoaderDelegate = [[DVAssetLoaderDelegate alloc] initWithURL:url];
-         resourceLoaderDelegate.delegate = self;
-         NSURLComponents *components = [[NSURLComponents alloc] initWithURL:url resolvingAgainstBaseURL:NO];
-         components.scheme = [DVAssetLoaderDelegate scheme];
-         AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:[components URL] options:options];
-         [asset.resourceLoader setDelegate:resourceLoaderDelegate queue:dispatch_get_main_queue()];
-         */
         [self setUpPlayerItem: [AVPlayerItem playerItemWithAsset:asset]];
     }];
 }
@@ -607,7 +545,6 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
             return NULL;
         }
         if (renderer) {
-            NSLog(@"Rotation = %d", self.rotation);
             [renderer drawFrame:pixelBuffer withRotation:self.rotation inTexture:_texture];
             CVBufferRelease(pixelBuffer);
             CVBufferRetain(_renderTarget);
@@ -754,7 +691,7 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
     return [self onPlayerSetup:player frameUpdater:frameUpdater];
   } else if (input.uri) {
     player = [[FLTVideoPlayer alloc] initWithURL:[NSURL URLWithString:input.uri]
-                                    frameUpdater:frameUpdater];
+                                    frameUpdater:frameUpdater cacheEnabled:input.cacheEnabled];
     return [self onPlayerSetup:player frameUpdater:frameUpdater];
   } else {
     *error = [FlutterError errorWithCode:@"video_player" message:@"not implemented" details:nil];

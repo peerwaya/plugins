@@ -81,11 +81,14 @@ static NSDictionary *wrapResult(NSDictionary *result, FlutterError *error) {
     result.formatHint = nil;
   }
   NSNumber* cacheEnabled = dict[@"cacheEnabled"];
-  if ((NSNull *)cacheEnabled != [NSNull null]) {
-      result.cacheEnabled = [cacheEnabled boolValue];
+  if ((NSNull *)cacheEnabled == [NSNull null]) {
+    result.cacheEnabled = NO;
+  } else {
+    result.cacheEnabled = [cacheEnabled boolValue];
   }
   return result;
 }
+
 - (NSDictionary *)toMap {
   return [NSDictionary
       dictionaryWithObjectsAndKeys:(self.asset ? self.asset : [NSNull null]), @"asset",
