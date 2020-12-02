@@ -26,7 +26,7 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
-  Future<int> create(DataSource dataSource) async {
+  Future<int> create(DataSource dataSource, {int width, int height}) async {
     CreateMessage message = CreateMessage();
 
     switch (dataSource.sourceType) {

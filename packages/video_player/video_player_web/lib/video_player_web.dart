@@ -62,7 +62,7 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
   }
 
   @override
-  Future<int> create(DataSource dataSource) async {
+  Future<int> create(DataSource dataSource, {int width, int height}) async {
     final int textureId = _textureCounter;
     _textureCounter++;
 
@@ -89,9 +89,7 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
     }
 
     final _VideoPlayer player = _VideoPlayer(
-      uri: uri,
-      textureId: textureId,
-    );
+        uri: uri, textureId: textureId, width: width, height: height);
 
     player.initialize();
 
@@ -149,11 +147,18 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
 }
 
 class _VideoPlayer {
-  _VideoPlayer({this.uri, this.textureId});
+  _VideoPlayer({
+    this.uri,
+    this.textureId,
+    this.width,
+    this.height,
+  });
 
   final StreamController<VideoEvent> eventController =
       StreamController<VideoEvent>();
 
+  final int width;
+  final int height;
   final String uri;
   final int textureId;
   VideoElement videoElement;
@@ -162,10 +167,11 @@ class _VideoPlayer {
   void initialize() {
     videoElement = VideoElement()
       ..src = uri
+      ..width = width
+      ..height = height
       ..autoplay = false
       ..controls = false
       ..style.border = 'none';
-
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
 
