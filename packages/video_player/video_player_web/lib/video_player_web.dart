@@ -171,7 +171,9 @@ class _VideoPlayer {
       ..height = height
       ..autoplay = false
       ..controls = false
+      ..disableRemotePlayback = true
       ..style.border = 'none';
+    videoElement.setAttribute('controlsList', 'nodownload nofullscreen');
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
 
