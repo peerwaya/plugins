@@ -170,15 +170,14 @@ class _VideoPlayer {
       ..src = uri
       ..width = width
       ..height = height
-      ..autoplay = false
       ..controls = false
-      ..muted = true
-      ..autoplay = true
       ..disableRemotePlayback = true
       ..style.border = 'none';
     videoElement.setAttribute('controlsList', 'nodownload nofullscreen');
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
+    videoElement.setAttribute('autoplay', '1');
+    videoElement.setAttribute('muted', '1');
 
     // TODO(hterkelsen): Use initialization parameters once they are available
     // ignore: undefined_prefixed_name
