@@ -166,11 +166,14 @@ class _VideoPlayer {
 
   void initialize() {
     videoElement = VideoElement()
+      ..id = 'videoPlayer-$textureId'
       ..src = uri
       ..width = width
       ..height = height
       ..autoplay = false
       ..controls = false
+      ..muted = true
+      ..autoplay = true
       ..disableRemotePlayback = true
       ..style.border = 'none';
     videoElement.setAttribute('controlsList', 'nodownload nofullscreen');
@@ -181,6 +184,13 @@ class _VideoPlayer {
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
+
+    videoElement.onPlay.listen((dynamic _) {
+      if (!isInitialized) {
+        isInitialized = true;
+        sendInitialized();
+      }
+    });
 
     videoElement.onCanPlay.listen((dynamic _) {
       if (!isInitialized) {
