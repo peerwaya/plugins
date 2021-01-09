@@ -36,6 +36,7 @@ class VideoPlayerValue {
     this.isPlaying = false,
     this.isLooping = false,
     this.isBuffering = false,
+    this.isMuted = kIsWeb ? true : false,
     this.volume = 1.0,
     this.playbackSpeed = 1.0,
     this.errorDescription,
@@ -71,6 +72,9 @@ class VideoPlayerValue {
 
   /// True if the video is looping.
   final bool isLooping;
+
+  /// True if the video is muted.
+  final bool isMuted;
 
   /// True if the video is currently buffering.
   final bool isBuffering;
@@ -121,6 +125,7 @@ class VideoPlayerValue {
     List<DurationRange> buffered,
     bool isPlaying,
     bool isLooping,
+    bool isMuted,
     bool isBuffering,
     double volume,
     double playbackSpeed,
@@ -134,6 +139,7 @@ class VideoPlayerValue {
       buffered: buffered ?? this.buffered,
       isPlaying: isPlaying ?? this.isPlaying,
       isLooping: isLooping ?? this.isLooping,
+      isMuted: isMuted ?? this.isMuted,
       isBuffering: isBuffering ?? this.isBuffering,
       volume: volume ?? this.volume,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
@@ -151,6 +157,8 @@ class VideoPlayerValue {
         'buffered: [${buffered.join(', ')}], '
         'isPlaying: $isPlaying, '
         'isLooping: $isLooping, '
+        'isMuted: $isMuted,  '
+        'isMuted: $isMuted, '
         'isBuffering: $isBuffering, '
         'volume: $volume, '
         'playbackSpeed: $playbackSpeed, '
@@ -317,6 +325,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
           break;
+        case VideoEventType.mute:
+          value = value.copyWith(isMuted: event.muted);
+          break;
         case VideoEventType.unknown:
           break;
       }
@@ -377,6 +388,12 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyLooping();
   }
 
+  /// Sets whether or not the video should be muted
+  Future<void> setMuted(bool muted) async {
+    value = value.copyWith(isMuted: muted);
+    await _applyMuted();
+  }
+
   /// Pauses the video.
   Future<void> pause() async {
     value = value.copyWith(isPlaying: false);
@@ -425,6 +442,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
     await _videoPlayerPlatform.setVolume(_textureId, value.volume);
+  }
+
+  Future<void> _applyMuted() async {
+    if (!value.initialized || _isDisposed) {
+      return;
+    }
+    await _videoPlayerPlatform.setMuted(_textureId, value.isMuted);
   }
 
   Future<void> _applyPlaybackSpeed() async {

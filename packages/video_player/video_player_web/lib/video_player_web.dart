@@ -118,6 +118,11 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> setMuted(int textureId, bool muted) async {
+    return _videoPlayers[textureId].setMuted(muted);
+  }
+
+  @override
   Future<void> setPlaybackSpeed(int textureId, double speed) async {
     assert(speed > 0);
 
@@ -177,8 +182,6 @@ class _VideoPlayer {
       ..style.border = 'none';
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
-    videoElement.setAttribute('autoplay', 'true');
-    videoElement.setAttribute('muted', 'true');
 
     // TODO(hterkelsen): Use initialization parameters once they are available
     // ignore: undefined_prefixed_name
@@ -225,7 +228,11 @@ class _VideoPlayer {
   }
 
   Future<void> play() {
-    return videoElement.play().catchError((e) {
+    return videoElement.play().then((value) {
+      if (videoElement.muted) {
+        videoElement.muted = false;
+      }
+    }).catchError((e) {
       // play() attempts to begin playback of the media. It returns
       // a Promise which can get rejected in case of failure to begin
       // playback for any reason, such as permission issues.
@@ -255,6 +262,10 @@ class _VideoPlayer {
       videoElement.muted = true;
     }
     videoElement.volume = value;
+  }
+
+  void setMuted(bool value) {
+    videoElement.muted = value;
   }
 
   void setPlaybackSpeed(double speed) {
