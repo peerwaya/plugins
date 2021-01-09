@@ -310,6 +310,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           initializingCompleter.complete(null);
           _applyLooping();
           _applyVolume();
+          _applyMuted();
           _applyPlayPause();
           break;
         case VideoEventType.completed:
@@ -387,8 +388,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Sets whether or not the video should be muted
   Future<void> setMuted(bool muted) async {
+    print('START SET MUTED');
     value = value.copyWith(isMuted: muted);
     await _applyMuted();
+    print('DONE SET MUTED');
   }
 
   /// Pauses the video.

@@ -176,7 +176,6 @@ class _VideoPlayer {
       ..width = width
       ..height = height
       ..autoplay = true
-      ..muted = true
       ..controls = false
       ..disableRemotePlayback = true
       ..style.border = 'none';
@@ -266,6 +265,7 @@ class _VideoPlayer {
 
   void setMuted(bool value) {
     videoElement.muted = value;
+    print('RECEIBED SERT  MUTED VALUE: $value');
   }
 
   void setPlaybackSpeed(double speed) {
