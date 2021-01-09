@@ -325,9 +325,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
           break;
-        case VideoEventType.mute:
-          value = value.copyWith(isMuted: event.muted);
-          break;
         case VideoEventType.unknown:
           break;
       }
