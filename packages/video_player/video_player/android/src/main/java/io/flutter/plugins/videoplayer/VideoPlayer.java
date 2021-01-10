@@ -60,6 +60,7 @@ final class VideoPlayer {
 
   private final VideoPlayerOptions options;
 
+  private float currentVolumeBeforeMuted  = -1f;
 
   VideoPlayer(
       Context context,
@@ -241,6 +242,18 @@ final class VideoPlayer {
   void setVolume(double value) {
     float bracketedValue = (float) Math.max(0.0, Math.min(1.0, value));
     exoPlayer.setVolume(bracketedValue);
+    currentVolumeBeforeMuted = -1;
+  }
+
+  void setMuted(boolean value) {;
+    if (value)  {
+      currentVolumeBeforeMuted = exoPlayer.getVolume();
+      exoPlayer.setVolume(0);
+    } else {
+      if (currentVolumeBeforeMuted >= 0) {
+        exoPlayer.setVolume(currentVolumeBeforeMuted);
+      }
+    }
   }
 
   void setPlaybackSpeed(double value) {

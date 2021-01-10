@@ -265,7 +265,6 @@ class _VideoPlayer {
 
   void setMuted(bool value) {
     videoElement.muted = value;
-    print('RECEIBED SERT  MUTED VALUE: $value');
   }
 
   void setPlaybackSpeed(double speed) {

@@ -206,6 +206,48 @@ public class Messages {
   }
 
   /** Generated class from Pigeon that represents data sent in messages. */
+  public static class MutedMessage {
+    private Long textureId;
+
+    public Long getTextureId() {
+      return textureId;
+    }
+
+    public void setTextureId(Long setterArg) {
+      this.textureId = setterArg;
+    }
+
+    private Boolean muted;
+
+    public Boolean getMuted() {
+      return muted;
+    }
+
+    public void setMuted(Boolean setterArg) {
+      this.muted = setterArg;
+    }
+
+    HashMap toMap() {
+      HashMap<String, Object> toMapResult = new HashMap<>();
+      toMapResult.put("textureId", textureId);
+      toMapResult.put("muted", muted);
+      return toMapResult;
+    }
+
+    static MutedMessage fromMap(HashMap map) {
+      MutedMessage fromMapResult = new MutedMessage();
+      Object textureId = map.get("textureId");
+      fromMapResult.textureId =
+          (textureId == null)
+              ? null
+              : ((textureId instanceof Integer) ? (Integer) textureId : (Long) textureId);
+      Object muted = map.get("muted");
+      fromMapResult.muted = (Boolean) muted;
+      return fromMapResult;
+    }
+  }
+
+  /** Generated class from Pigeon that represents data sent in messages. */
   public static class PlaybackSpeedMessage {
     private Long textureId;
 
@@ -330,6 +372,8 @@ public class Messages {
 
     void setVolume(VolumeMessage arg);
 
+    void setMuted(MutedMessage arg);
+
     void setPlaybackSpeed(PlaybackSpeedMessage arg);
 
     void play(TextureMessage arg);
@@ -452,6 +496,30 @@ public class Messages {
                   @SuppressWarnings("ConstantConditions")
                   VolumeMessage input = VolumeMessage.fromMap((HashMap) message);
                   api.setVolume(input);
+                  wrapped.put("result", null);
+                } catch (Exception exception) {
+                  wrapped.put("error", wrapError(exception));
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger,
+                "dev.flutter.pigeon.VideoPlayerApi.setMuted",
+                new StandardMessageCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                HashMap<String, HashMap> wrapped = new HashMap<>();
+                try {
+                  @SuppressWarnings("ConstantConditions")
+                  MutedMessage input = MutedMessage.fromMap((HashMap) message);
+                  api.setMuted(input);
                   wrapped.put("result", null);
                 } catch (Exception exception) {
                   wrapped.put("error", wrapError(exception));

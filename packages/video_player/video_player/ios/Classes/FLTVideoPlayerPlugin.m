@@ -515,6 +515,10 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
   _player.volume = (float)((volume < 0.0) ? 0.0 : ((volume > 1.0) ? 1.0 : volume));
 }
 
+- (void)setMuted:(bool)muted {
+  _player.muted = muted;
+}
+
 - (void)setPlaybackSpeed:(double)speed {
   // See https://developer.apple.com/library/archive/qa/qa1772/_index.html for an explanation of
   // these checks.
@@ -752,6 +756,11 @@ static inline CGFloat radiansToDegrees(CGFloat radians) {
 - (void)setVolume:(FLTVolumeMessage*)input error:(FlutterError**)error {
   FLTVideoPlayer* player = _players[input.textureId];
   [player setVolume:[input.volume doubleValue]];
+}
+
+- (void)setMuted:(FLTMutedMessage*)input error:(FlutterError**)error {
+  FLTVideoPlayer* player = _players[input.textureId];
+  [player setMuted:[input.muted boolValue]];
 }
 
 - (void)setPlaybackSpeed:(FLTPlaybackSpeedMessage*)input error:(FlutterError**)error {

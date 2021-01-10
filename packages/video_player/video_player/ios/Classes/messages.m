@@ -148,6 +148,28 @@ static NSDictionary *wrapResult(NSDictionary *result, FlutterError *error) {
 }
 @end
 
+@implementation FLTMutedMessage
++ (FLTMutedMessage *)fromMap:(NSDictionary *)dict {
+  FLTMutedMessage *result = [[FLTMutedMessage alloc] init];
+  result.textureId = dict[@"textureId"];
+  if ((NSNull *)result.textureId == [NSNull null]) {
+    result.textureId = nil;
+  }
+  result.muted = dict[@"muted"];
+  if ((NSNull *)result.muted == [NSNull null]) {
+    result.muted = nil;
+  }
+  return result;
+}
+- (NSDictionary *)toMap {
+  return [NSDictionary
+      dictionaryWithObjectsAndKeys:(self.textureId != nil ? self.textureId : [NSNull null]),
+                                   @"textureId",
+                                   (self.muted != nil ? self.muted : [NSNull null]),
+                                   @"muted", nil];
+}
+@end
+
 @implementation FLTPlaybackSpeedMessage
 + (FLTPlaybackSpeedMessage *)fromMap:(NSDictionary *)dict {
   FLTPlaybackSpeedMessage *result = [[FLTPlaybackSpeedMessage alloc] init];
@@ -276,6 +298,21 @@ void FLTVideoPlayerApiSetup(id<FlutterBinaryMessenger> binaryMessenger, id<FLTVi
         FlutterError *error;
         FLTVolumeMessage *input = [FLTVolumeMessage fromMap:message];
         [api setVolume:input error:&error];
+        callback(wrapResult(nil, error));
+      }];
+    } else {
+      [channel setMessageHandler:nil];
+    }
+  }
+  {
+    FlutterBasicMessageChannel *channel = [FlutterBasicMessageChannel
+        messageChannelWithName:@"dev.flutter.pigeon.VideoPlayerApi.setMuted"
+               binaryMessenger:binaryMessenger];
+    if (api) {
+      [channel setMessageHandler:^(id _Nullable message, FlutterReply callback) {
+        FlutterError *error;
+        FLTMutedMessage *input = [FLTMutedMessage fromMap:message];
+        [api setMuted:input error:&error];
         callback(wrapResult(nil, error));
       }];
     } else {

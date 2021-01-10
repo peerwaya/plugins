@@ -66,7 +66,11 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
-  Future<void> setMuted(int textureId, bool muted) async {}
+  Future<void> setMuted(int textureId, bool muted) async {
+    return _api.setMuted(MutedMessage()
+      ..textureId = textureId
+      ..muted = muted);
+  }
 
   @override
   Future<void> setVolume(int textureId, double volume) {

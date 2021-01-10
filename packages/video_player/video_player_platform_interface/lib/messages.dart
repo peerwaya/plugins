@@ -104,6 +104,29 @@ class VolumeMessage {
   }
 }
 
+class MutedMessage {
+  int textureId;
+  bool muted;
+  // ignore: unused_element
+  Map<dynamic, dynamic> _toMap() {
+    final Map<dynamic, dynamic> pigeonMap = <dynamic, dynamic>{};
+    pigeonMap['textureId'] = textureId;
+    pigeonMap['muted'] = muted;
+    return pigeonMap;
+  }
+
+  // ignore: unused_element
+  static MutedMessage _fromMap(Map<dynamic, dynamic> pigeonMap) {
+    if (pigeonMap == null) {
+      return null;
+    }
+    final MutedMessage result = MutedMessage();
+    result.textureId = pigeonMap['textureId'];
+    result.muted = pigeonMap['muted'];
+    return result;
+  }
+}
+
 class PlaybackSpeedMessage {
   int textureId;
   double speed;
@@ -280,6 +303,28 @@ class VideoPlayerApi {
     }
   }
 
+  Future<void> setMuted(MutedMessage arg) async {
+    final Map<dynamic, dynamic> requestMap = arg._toMap();
+    const BasicMessageChannel<dynamic> channel = BasicMessageChannel<dynamic>(
+        'dev.flutter.pigeon.VideoPlayerApi.setMuted', StandardMessageCodec());
+
+    final Map<dynamic, dynamic> replyMap = await channel.send(requestMap);
+    if (replyMap == null) {
+      throw PlatformException(
+          code: 'channel-error',
+          message: 'Unable to establish connection on channel.',
+          details: null);
+    } else if (replyMap['error'] != null) {
+      final Map<dynamic, dynamic> error = replyMap['error'];
+      throw PlatformException(
+          code: error['code'],
+          message: error['message'],
+          details: error['details']);
+    } else {
+      // noop
+    }
+  }
+
   Future<void> setPlaybackSpeed(PlaybackSpeedMessage arg) async {
     final Map<dynamic, dynamic> requestMap = arg._toMap();
     const BasicMessageChannel<dynamic> channel = BasicMessageChannel<dynamic>(
@@ -421,6 +466,7 @@ abstract class TestHostVideoPlayerApi {
   void dispose(TextureMessage arg);
   void setLooping(LoopingMessage arg);
   void setVolume(VolumeMessage arg);
+  void setMuted(MutedMessage arg);
   void setPlaybackSpeed(PlaybackSpeedMessage arg);
   void play(TextureMessage arg);
   PositionMessage position(TextureMessage arg);
@@ -480,6 +526,17 @@ abstract class TestHostVideoPlayerApi {
             message as Map<dynamic, dynamic>;
         final VolumeMessage input = VolumeMessage._fromMap(mapMessage);
         api.setVolume(input);
+        return <dynamic, dynamic>{};
+      });
+    }
+    {
+      const BasicMessageChannel<dynamic> channel = BasicMessageChannel<dynamic>(
+          'dev.flutter.pigeon.VideoPlayerApi.setMuted', StandardMessageCodec());
+      channel.setMockMessageHandler((dynamic message) async {
+        final Map<dynamic, dynamic> mapMessage =
+            message as Map<dynamic, dynamic>;
+        final MutedMessage input = MutedMessage._fromMap(mapMessage);
+        api.setMuted(input);
         return <dynamic, dynamic>{};
       });
     }

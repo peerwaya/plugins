@@ -37,6 +37,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong, nullable) NSNumber *volume;
 @end
 
+@interface FLTMutedMessage : NSObject
+@property(nonatomic, strong, nullable) NSNumber *textureId;
+@property(nonatomic, strong, nullable) NSNumber *muted;
+@end
+
 @interface FLTPlaybackSpeedMessage : NSObject
 @property(nonatomic, strong, nullable) NSNumber *textureId;
 @property(nonatomic, strong, nullable) NSNumber *speed;
@@ -58,6 +63,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)dispose:(FLTTextureMessage *)input error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setLooping:(FLTLoopingMessage *)input error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setVolume:(FLTVolumeMessage *)input error:(FlutterError *_Nullable *_Nonnull)error;
+- (void)setMuted:(FLTMutedMessage *)input error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)setPlaybackSpeed:(FLTPlaybackSpeedMessage *)input
                    error:(FlutterError *_Nullable *_Nonnull)error;
 - (void)play:(FLTTextureMessage *)input error:(FlutterError *_Nullable *_Nonnull)error;
