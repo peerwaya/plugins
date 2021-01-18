@@ -168,6 +168,17 @@ class _VideoPlayer {
   final int textureId;
   VideoElement videoElement;
   bool isInitialized = false;
+  bool isBuffering = false;
+
+  void setBuffering(bool buffering) {
+    if (isBuffering != buffering) {
+      isBuffering = buffering;
+      eventController.add(VideoEvent(
+          eventType: isBuffering
+              ? VideoEventType.bufferingStart
+              : VideoEventType.bufferingEnd));
+    }
+  }
 
   void initialize() {
     videoElement = VideoElement()
@@ -187,22 +198,30 @@ class _VideoPlayer {
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
 
-    videoElement.onPlay.listen((dynamic _) {
-      if (!isInitialized) {
-        isInitialized = true;
-        sendInitialized();
-      }
-    });
-
     videoElement.onCanPlay.listen((dynamic _) {
       if (!isInitialized) {
         isInitialized = true;
         sendInitialized();
       }
+      setBuffering(false);
+    });
+
+    videoElement.onCanPlayThrough.listen((dynamic _) {
+      setBuffering(false);
+    });
+
+    videoElement.onPlaying.listen((dynamic _) {
+      setBuffering(false);
+    });
+
+    videoElement.onWaiting.listen((dynamic _) {
+      setBuffering(true);
+      sendBufferingUpdate();
     });
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
     videoElement.onError.listen((Event _) {
+      setBuffering(false);
       // The Event itself (_) doesn't contain info about the actual error.
       // We need to look at the HTMLMediaElement.error.
       // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
@@ -215,6 +234,7 @@ class _VideoPlayer {
     });
 
     videoElement.onEnded.listen((dynamic _) {
+      setBuffering(false);
       eventController.add(VideoEvent(eventType: VideoEventType.completed));
     });
   }
