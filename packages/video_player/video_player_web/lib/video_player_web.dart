@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:html';
-import 'dart:ui' as ui;
+import 'src/shims/dart_ui.dart' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +50,7 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int textureId) async {
-    _videoPlayers[textureId].dispose();
+    _videoPlayers[textureId]!.dispose();
     _videoPlayers.remove(textureId);
     return null;
   }
@@ -62,24 +62,22 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
   }
 
   @override
-  Future<int> create(DataSource dataSource, {int width, int height}) async {
+  Future<int> create(DataSource dataSource) async {
     final int textureId = _textureCounter;
     _textureCounter++;
 
-    String uri;
+    late String uri;
     switch (dataSource.sourceType) {
       case DataSourceType.network:
         // Do NOT modify the incoming uri, it can be a Blob, and Safari doesn't
         // like blobs that have changed.
-        uri = dataSource.uri;
+        uri = dataSource.uri ?? '';
         break;
       case DataSourceType.asset:
-        String assetUrl = dataSource.asset;
-        if (dataSource.package != null && dataSource.package.isNotEmpty) {
+        String assetUrl = dataSource.asset!;
+        if (dataSource.package != null && dataSource.package!.isNotEmpty) {
           assetUrl = 'packages/${dataSource.package}/$assetUrl';
         }
-        // 'webOnlyAssetManager' is only in the web version of dart:ui
-        // ignore: undefined_prefixed_name
         assetUrl = ui.webOnlyAssetManager.getAssetUrl(assetUrl);
         uri = assetUrl;
         break;
@@ -88,8 +86,7 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
             'web implementation of video_player cannot play local files'));
     }
 
-    final _VideoPlayer player = _VideoPlayer(
-        uri: uri, textureId: textureId, width: width, height: height);
+    final _VideoPlayer player = _VideoPlayer(uri: uri, textureId: textureId);
 
     player.initialize();
 
@@ -99,50 +96,50 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
 
   @override
   Future<void> setLooping(int textureId, bool looping) async {
-    return _videoPlayers[textureId].setLooping(looping);
+    return _videoPlayers[textureId]!.setLooping(looping);
   }
 
   @override
   Future<void> play(int textureId) async {
-    return _videoPlayers[textureId].play();
+    return _videoPlayers[textureId]!.play();
   }
 
   @override
   Future<void> pause(int textureId) async {
-    return _videoPlayers[textureId].pause();
+    return _videoPlayers[textureId]!.pause();
   }
 
   @override
   Future<void> setVolume(int textureId, double volume) async {
-    return _videoPlayers[textureId].setVolume(volume);
+    return _videoPlayers[textureId]!.setVolume(volume);
   }
 
   @override
   Future<void> setMuted(int textureId, bool muted) async {
-    return _videoPlayers[textureId].setMuted(muted);
+    return _videoPlayers[textureId]!.setMuted(muted);
   }
 
   @override
   Future<void> setPlaybackSpeed(int textureId, double speed) async {
     assert(speed > 0);
 
-    return _videoPlayers[textureId].setPlaybackSpeed(speed);
+    return _videoPlayers[textureId]!.setPlaybackSpeed(speed);
   }
 
   @override
   Future<void> seekTo(int textureId, Duration position) async {
-    return _videoPlayers[textureId].seekTo(position);
+    return _videoPlayers[textureId]!.seekTo(position);
   }
 
   @override
   Future<Duration> getPosition(int textureId) async {
-    _videoPlayers[textureId].sendBufferingUpdate();
-    return _videoPlayers[textureId].getPosition();
+    _videoPlayers[textureId]!.sendBufferingUpdate();
+    return _videoPlayers[textureId]!.getPosition();
   }
 
   @override
   Stream<VideoEvent> videoEventsFor(int textureId) {
-    return _videoPlayers[textureId].eventController.stream;
+    return _videoPlayers[textureId]!.eventController.stream;
   }
 
   @override
@@ -152,29 +149,31 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
 }
 
 class _VideoPlayer {
-  _VideoPlayer({
-    this.uri,
-    this.textureId,
-    this.width,
-    this.height,
-  });
+  _VideoPlayer({required this.uri, required this.textureId});
 
   final StreamController<VideoEvent> eventController =
       StreamController<VideoEvent>();
 
-  final int width;
-  final int height;
   final String uri;
   final int textureId;
-  VideoElement videoElement;
+  late VideoElement videoElement;
   bool isInitialized = false;
+  bool isBuffering = false;
+
+  void setBuffering(bool buffering) {
+    if (isBuffering != buffering) {
+      isBuffering = buffering;
+      eventController.add(VideoEvent(
+          eventType: isBuffering
+              ? VideoEventType.bufferingStart
+              : VideoEventType.bufferingEnd));
+    }
+  }
 
   void initialize() {
     videoElement = VideoElement()
       ..id = 'videoPlayer-$textureId'
       ..src = uri
-      ..width = width
-      ..height = height
       ..autoplay = true
       ..controls = false
       ..disableRemotePlayback = true
@@ -183,7 +182,6 @@ class _VideoPlayer {
     videoElement.setAttribute('playsinline', 'true');
 
     // TODO(hterkelsen): Use initialization parameters once they are available
-    // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
         'videoPlayer-$textureId', (int viewId) => videoElement);
 
@@ -199,22 +197,38 @@ class _VideoPlayer {
         isInitialized = true;
         sendInitialized();
       }
+      setBuffering(false);
+    });
+
+    videoElement.onCanPlayThrough.listen((dynamic _) {
+      setBuffering(false);
+    });
+
+    videoElement.onPlaying.listen((dynamic _) {
+      setBuffering(false);
+    });
+
+    videoElement.onWaiting.listen((dynamic _) {
+      setBuffering(true);
+      sendBufferingUpdate();
     });
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
     videoElement.onError.listen((Event _) {
+      setBuffering(false);
       // The Event itself (_) doesn't contain info about the actual error.
       // We need to look at the HTMLMediaElement.error.
       // See: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/error
-      MediaError error = videoElement.error;
+      MediaError error = videoElement.error!;
       eventController.addError(PlatformException(
-        code: _kErrorValueToErrorName[error.code],
+        code: _kErrorValueToErrorName[error.code]!,
         message: error.message != '' ? error.message : _kDefaultErrorMessage,
         details: _kErrorValueToErrorDescription[error.code],
       ));
     });
 
     videoElement.onEnded.listen((dynamic _) {
+      setBuffering(false);
       eventController.add(VideoEvent(eventType: VideoEventType.completed));
     });
   }
@@ -289,8 +303,8 @@ class _VideoPlayer {
           milliseconds: (videoElement.duration * 1000).round(),
         ),
         size: Size(
-          videoElement.videoWidth.toDouble() ?? 0.0,
-          videoElement.videoHeight.toDouble() ?? 0.0,
+          videoElement.videoWidth.toDouble(),
+          videoElement.videoHeight.toDouble(),
         ),
       ),
     );
