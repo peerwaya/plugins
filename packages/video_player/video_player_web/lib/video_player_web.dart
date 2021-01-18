@@ -219,6 +219,11 @@ class _VideoPlayer {
       sendBufferingUpdate();
     });
 
+    videoElement.onStalled.listen((dynamic _) {
+      setBuffering(true);
+      sendBufferingUpdate();
+    });
+
     // The error event fires when some form of error occurs while attempting to load or perform the media.
     videoElement.onError.listen((Event _) {
       setBuffering(false);
