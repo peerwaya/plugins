@@ -180,7 +180,6 @@ class _VideoPlayer {
       ..id = 'videoPlayer-$textureId'
       ..src = uri
       ..controls = false
-      ..preload = "metadata"
       ..style.border = 'none';
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('webkit-playsinline', 'true');
