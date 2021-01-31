@@ -62,7 +62,7 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
   }
 
   @override
-  Future<int> create(DataSource dataSource, {int width, int height}) async {
+  Future<int> create(DataSource dataSource) async {
     final int textureId = _textureCounter;
     _textureCounter++;
 
@@ -88,8 +88,7 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
             'web implementation of video_player cannot play local files'));
     }
 
-    final _VideoPlayer player = _VideoPlayer(
-        uri: uri, textureId: textureId, width: width, height: height);
+    final _VideoPlayer player = _VideoPlayer(uri: uri, textureId: textureId);
 
     player.initialize();
 
@@ -155,15 +154,11 @@ class _VideoPlayer {
   _VideoPlayer({
     this.uri,
     this.textureId,
-    this.width,
-    this.height,
   });
 
   final StreamController<VideoEvent> eventController =
       StreamController<VideoEvent>();
 
-  final int width;
-  final int height;
   final String uri;
   final int textureId;
   VideoElement videoElement;
@@ -184,12 +179,11 @@ class _VideoPlayer {
     videoElement = VideoElement()
       ..id = 'videoPlayer-$textureId'
       ..src = uri
-      ..width = width
-      ..height = height
-      ..autoplay = true
       ..controls = false
+      ..preload = "metadata"
       ..style.border = 'none';
     // Allows Safari iOS to play the video inline
+    videoElement.setAttribute('webkit-playsinline', 'true');
     videoElement.setAttribute('playsinline', 'true');
 
     // TODO(hterkelsen): Use initialization parameters once they are available

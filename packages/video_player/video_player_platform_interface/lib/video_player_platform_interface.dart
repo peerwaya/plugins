@@ -66,7 +66,7 @@ abstract class VideoPlayerPlatform {
   }
 
   /// Creates an instance of a video player and returns its textureId.
-  Future<int> create(DataSource dataSource, {int width, int height}) {
+  Future<int> create(DataSource dataSource) {
     throw UnimplementedError('create() has not been implemented.');
   }
 
@@ -365,17 +365,10 @@ class VideoPlayerOptions {
   /// Set this to true to enable caching the video asset, usually for network data sources
   final bool cacheEnabled;
 
-  /// Set the preferred width of the video used by web  on some browsers like safari ios
-  final int width;
-
-  /// Set the preferred height of the video used by web  on some browsers like safari ios
-  final int height;
-
   /// set additional optional player settings
-  VideoPlayerOptions(
-      {this.mixWithOthers = false,
-      this.enableObserver = true,
-      this.cacheEnabled = false,
-      this.width,
-      this.height});
+  VideoPlayerOptions({
+    this.mixWithOthers = false,
+    this.enableObserver = true,
+    this.cacheEnabled = false,
+  });
 }
