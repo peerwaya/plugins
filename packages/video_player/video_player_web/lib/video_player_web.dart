@@ -265,6 +265,7 @@ class _VideoPlayer {
         videoElement.muted = false;
       }
     }).catchError((e) {
+      print('PLAY BACK ERROR: $e');
       // play() attempts to begin playback of the media. It returns
       // a Promise which can get rejected in case of failure to begin
       // playback for any reason, such as permission issues.
@@ -293,11 +294,13 @@ class _VideoPlayer {
     } else {
       videoElement.muted = true;
     }
+    print('VIDEO MUTED FROM VOLUME: ${videoElement.muted}');
     videoElement.volume = value;
   }
 
   void setMuted(bool value) {
     videoElement.muted = value;
+    print('VIDEO ELEMENT MUTED: ${videoElement.muted}');
   }
 
   void setPlaybackSpeed(double speed) {
