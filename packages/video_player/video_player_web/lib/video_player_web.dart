@@ -190,7 +190,6 @@ class _VideoPlayer {
       ..style.border = 'none';
     videoElement.setAttribute('width', '100%');
     videoElement.setAttribute('height', '100%');
-    videoElement.setAttribute('type', 'video/mp4');
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
 
