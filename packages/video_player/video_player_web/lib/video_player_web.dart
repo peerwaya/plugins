@@ -62,7 +62,7 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
   }
 
   @override
-  Future<int> create(DataSource dataSource) async {
+  Future<int> create(DataSource dataSource, {int width, int height}) async {
     final int textureId = _textureCounter;
     _textureCounter++;
 
@@ -88,7 +88,8 @@ class VideoPlayerPlugin extends VideoPlayerPlatform {
             'web implementation of video_player cannot play local files'));
     }
 
-    final _VideoPlayer player = _VideoPlayer(uri: uri, textureId: textureId);
+    final _VideoPlayer player = _VideoPlayer(
+        uri: uri, textureId: textureId, width: width, height: height);
 
     player.initialize();
 
@@ -154,11 +155,15 @@ class _VideoPlayer {
   _VideoPlayer({
     this.uri,
     this.textureId,
+    this.width,
+    this.height,
   });
 
   final StreamController<VideoEvent> eventController =
       StreamController<VideoEvent>();
 
+  final int width;
+  final int height;
   final String uri;
   final int textureId;
   VideoElement videoElement;
@@ -179,14 +184,12 @@ class _VideoPlayer {
     videoElement = VideoElement()
       ..id = 'videoPlayer-$textureId'
       ..src = uri
-      ..controls = false
-      ..width = 0
-      ..height = 0
+      ..width = width
+      ..height = height
       ..autoplay = true
-      ..muted = true
+      ..controls = false
       ..style.border = 'none';
     // Allows Safari iOS to play the video inline
-    videoElement.setAttribute('webkit-playsinline', 'true');
     videoElement.setAttribute('playsinline', 'true');
 
     // TODO(hterkelsen): Use initialization parameters once they are available
@@ -227,7 +230,6 @@ class _VideoPlayer {
 
     videoElement.addEventListener('loadstart', (event) {
       print('loadstart');
-      setBuffering(true);
     });
 
     videoElement.onLoadedData.listen((dynamic _) {
@@ -268,7 +270,6 @@ class _VideoPlayer {
         videoElement.muted = false;
       }
     }).catchError((e) {
-      print('PLAY BACK ERROR: $e');
       // play() attempts to begin playback of the media. It returns
       // a Promise which can get rejected in case of failure to begin
       // playback for any reason, such as permission issues.
@@ -297,13 +298,11 @@ class _VideoPlayer {
     } else {
       videoElement.muted = true;
     }
-    print('VIDEO MUTED FROM VOLUME: ${videoElement.muted}');
     videoElement.volume = value;
   }
 
   void setMuted(bool value) {
     videoElement.muted = value;
-    print('VIDEO ELEMENT MUTED: ${videoElement.muted}');
   }
 
   void setPlaybackSpeed(double speed) {
