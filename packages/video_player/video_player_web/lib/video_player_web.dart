@@ -184,11 +184,12 @@ class _VideoPlayer {
     videoElement = VideoElement()
       ..id = 'videoPlayer-$textureId'
       ..src = uri
-      ..width = width
-      ..height = height
       ..autoplay = true
       ..controls = false
       ..style.border = 'none';
+    videoElement.setAttribute('width', '100%');
+    videoElement.setAttribute('height', '100%');
+    videoElement.setAttribute('type', 'video/mp4');
     // Allows Safari iOS to play the video inline
     videoElement.setAttribute('playsinline', 'true');
 
