@@ -186,6 +186,7 @@ class _VideoPlayer {
       ..src = uri
       ..autoplay = true
       ..controls = false
+      ..preload = 'metadata'
       ..style.border = 'none';
     videoElement.setAttribute('width', '100%');
     videoElement.setAttribute('height', '100%');
