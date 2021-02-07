@@ -203,7 +203,6 @@ class _VideoPlayer {
         isInitialized = true;
         sendInitialized();
       }
-      print('ON CAN PLAY CALLED');
       setBuffering(false);
     });
 
@@ -216,26 +215,13 @@ class _VideoPlayer {
     });
 
     videoElement.onWaiting.listen((dynamic _) {
-      print('ON WAITING');
       setBuffering(true);
       sendBufferingUpdate();
     });
 
     videoElement.onStalled.listen((dynamic _) {
-      print('ON STALLED');
       setBuffering(true);
       sendBufferingUpdate();
-    });
-
-    videoElement.addEventListener('stalled', (event) => print('stalled'));
-
-    videoElement.addEventListener('loadstart', (event) {
-      print('loadstart');
-    });
-
-    videoElement.onLoadedData.listen((dynamic _) {
-      print('LOADED DATA');
-      setBuffering(false);
     });
 
     // The error event fires when some form of error occurs while attempting to load or perform the media.
